@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "engine_core",
+    "luminance-sdl2",
+]

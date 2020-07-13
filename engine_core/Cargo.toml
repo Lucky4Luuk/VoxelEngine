@@ -1,0 +1,33 @@
+[package]
+name = "engine_core"
+version = "0.1.0"
+authors = ["Luuk van Oijen <lazyluuk.channel@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+#Logging
+log = "0.4"
+pretty_env_logger = "0.3.1"
+
+#Graphics
+sdl2 = "0.33"
+luminance-sdl2 = { path = "../luminance-sdl2" }
+gl = "0.14"
+glow = "0.4.0"
+luminance = { git = "https://github.com/Lucky4Luuk/luminance-rs" }
+luminance-derive = { git = "https://github.com/Lucky4Luuk/luminance-rs" }
+
+#UI
+imgui = "0.4.0"
+imgui-opengl-renderer = "0.8.0"
+imgui-sdl2 = "0.10.0"
+
+#Math
+cgmath = "0.17.0"
+
+#IO
+serde = { version = "1.0.111", features = ["derive"] }
+serde_json = "1.0.55"
+
+#DLL Loading
+libloading = "0.6.2"
