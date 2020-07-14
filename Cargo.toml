@@ -2,4 +2,5 @@
 members = [
     "engine_core",
     "luminance-sdl2",
+    "voxel_dag",
 ]

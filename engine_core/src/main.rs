@@ -11,6 +11,7 @@ use sdl2::event::Event;
 use glow::HasContext;
 
 mod ui;
+mod vox_loader;
 
 pub fn initialize(width: u32, height: u32) -> Result<(SDL2Surface, glow::Context, sdl2::video::GLContext), &'static str> {
     let surface = SDL2Surface::new(
@@ -81,7 +82,7 @@ fn main() {
         }
 
         //CODE STUFF HERE
-        
+
 
         //UI
         let ui = imgui.frame();
