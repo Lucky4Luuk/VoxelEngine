@@ -1,4 +1,4 @@
 # VoxelEngine
 
 # Research / ideas
-See [this page](../blob/master/IDEAS.md).
+See [this page](../master/IDEAS.md).
