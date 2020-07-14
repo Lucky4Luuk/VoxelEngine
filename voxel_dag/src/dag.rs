@@ -1,5 +1,5 @@
 use glam::*;
 
-pub struct DAG {
+pub struct Node {
     
 }
