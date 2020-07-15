@@ -1,4 +1,5 @@
 use glam::*;
+use serde::{Serialize, Deserialize};
 
 //In the original paper, it suggests storing only a pointer to the first child, and then
 //have all the other children stored in memory consecutively, but I'm not sure how I'd do this
@@ -23,18 +24,20 @@ use glam::*;
 //NOTE: It should not be super hard to eventually switch this out to use memory directly,
 //      but changing it now makes no sense. It's much easier to develop it like this as well,
 //      so I'll leave it like this for now :)
+
+#[derive(Serialize, Deserialize)]
 pub struct DAG {
     data: Vec<u32>, //raw data, only used internally
 }
 
 impl DAG {
     //Creation
-    pub fn from_voxel_data(vox_data: Vec<u8>) -> Self {
+    pub fn from_voxel_data(data: &[u8], data_size: (u32, u32, u32)) -> Self {
         unimplemented!();
     }
 
     //Functions
-    
+
 
     //Memory
     pub fn get_ptr(&self) -> *const u32 {
