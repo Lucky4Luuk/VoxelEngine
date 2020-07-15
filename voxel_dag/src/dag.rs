@@ -28,7 +28,20 @@ pub struct DAG {
 }
 
 impl DAG {
+    //Creation
     pub fn from_voxel_data(vox_data: Vec<u8>) -> Self {
         unimplemented!();
+    }
+
+    //Functions
+    
+
+    //Memory
+    pub fn get_ptr(&self) -> *const u32 {
+        self.data.as_ptr()
+    }
+
+    pub fn get_len(&self) -> usize {
+        self.data.len()
     }
 }

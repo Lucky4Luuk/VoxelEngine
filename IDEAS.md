@@ -17,4 +17,4 @@ I'm still quite unsure about this, but it preferably has to mimic the GPU data s
 
 ## Raytracing
 The raytracing will most likely be done in a compute shader.
-I'd like to spawn a thread per ray (see [this](https://research.nvidia.com/sites/default/files/pubs/2013-07_Megakernels-Considered-Harmful/laine2013hpg_paper.pdf)), but this will probably not be implemented at the start.
+I'd like to spawn a thread per ray (see [this paper](https://research.nvidia.com/sites/default/files/pubs/2013-07_Megakernels-Considered-Harmful/laine2013hpg_paper.pdf)), but this will probably not be implemented at the start.
