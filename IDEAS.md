@@ -10,7 +10,7 @@ Send voxel data from CPU to GPU using Uniform Buffer Objects.
 ## GPU Data structure
 The DAG will not store pointers, but in fact store the location in the buffer where its first child is located.
 This should be the only modification needed to what the paper describes to get it to work nicely with my OpenGL code.
-It will be stored in a BufferTexture, as this is most likely the most efficient way to store it.
+It will be stored in a [SSBO](https://www.khronos.org/opengl/wiki/Shader_Storage_Buffer_Object), as this is most likely the most efficient way to store it.
 
 ## CPU Data structure
 I'm still quite unsure about this, but it preferably has to mimic the GPU data structure as much as possible, so it's much easier to get the data to the GPU.
