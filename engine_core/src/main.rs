@@ -1,3 +1,5 @@
+#![feature(box_syntax)]
+
 #[macro_use] extern crate log;
 #[macro_use] extern crate imgui;
 
@@ -10,8 +12,15 @@ use sdl2::event::Event;
 
 use glow::HasContext;
 
+use voxel_dag::*;
+
+mod camera;
+mod shader;
+mod mesh;
+
 mod ui;
 mod vox_loader;
+mod rasterizer;
 
 pub fn initialize(width: u32, height: u32) -> Result<(SDL2Surface, glow::Context, sdl2::video::GLContext), &'static str> {
     let surface = SDL2Surface::new(
@@ -44,7 +53,13 @@ fn main() {
 
     debug!("Hello, world!");
 
-    let (surface, gl, _gl_context) = initialize(1280, 720).expect("Failed to open a window!");
+    let vox_data = vox_loader::load_vox("teapot.vox");
+    debug!("Vox data loaded!");
+    let mut octree = octree::Octree::from_voxel_data(&vox_data[..], (126, 126, 126), 2).expect("Failed to create octree!");
+    octree.generate_level();
+    octree.generate_level();
+
+    let (mut surface, gl, _gl_context) = initialize(1280, 720).expect("Failed to open a window!");
 
     let mut imgui = imgui::Context::create();
     imgui.set_ini_filename(None);
@@ -61,6 +76,17 @@ fn main() {
     let mut last_frame = Instant::now();
     let mut delta_s = 0.0;
 
+    //test shit
+    let mesh = mesh::RenderMesh::from_vox_data(&mut surface, &vox_data[..], (126, 126, 126)).expect("Failed to create mesh!");
+    let mut camera = camera::Camera::default();
+
+    let shader = shader::Shader::from_source(shader::ShaderSource{
+        vertex_shader: include_str!("shaders/vertex.glsl").to_string(),
+        geometry_shader: None,
+        tesselation_shader: None,
+        fragment_shader: include_str!("shaders/fragment.glsl").to_string(),
+    });
+
     'main: loop {
         for event in event_pump.poll_iter() {
             imgui_sdl2.handle_event(&mut imgui, &event);
@@ -76,26 +102,32 @@ fn main() {
 
         imgui_sdl2.prepare_frame(imgui.io_mut(), &surface.window, &event_pump.mouse_state());
 
+        rasterizer::prepare_frame(&gl);
+
         unsafe {
             gl.clear_color(127.0 / 255.0, 103.0 / 255.0, 181.0 / 255.0, 1.0);
             gl.clear(glow::COLOR_BUFFER_BIT);
         }
 
         //CODE STUFF HERE
+        camera.position.set_z(camera.position.z() + delta_s);
 
+        rasterizer::draw_vox_data(&mut surface, &gl, &camera, &shader, &mesh);
 
         //UI
         let ui = imgui.frame();
 
         let test_window = imgui::Window::new(im_str!("Test window"))
             .position([10.0, 10.0], imgui::Condition::Appearing)
-            .size([120.0, 150.0], imgui::Condition::Appearing)
+            .size([320.0, 120.0], imgui::Condition::Appearing)
             .focused(false)
             .collapsible(true);
 
         test_window.build(&ui, || {
             ui.text("Fuck off");
             ui.text("I'm cooding");
+            ui.separator();
+            ui.text(format!("cam pos: {:?}", camera.position));
         });
 
         imgui_sdl2.prepare_render(&ui, &surface.window);
