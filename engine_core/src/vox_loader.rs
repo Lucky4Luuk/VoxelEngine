@@ -16,7 +16,7 @@ pub fn load_vox(filename: &str) -> Box<[u8; 126*126*126]> { //1d array of voxels
     for voxel in &model.voxels {
         // let pos = Vec3A::new(voxel.x as f32, voxel.y as f32, voxel.z as f32);
         // let mat_id = voxel.i;
-        voxels[voxel.x as usize + voxel.y as usize * 126 + voxel.z as usize * 126 * 126] = voxel.i;
+        voxels[voxel.x as usize + voxel.z as usize * 126 + voxel.y as usize * 126 * 126] = voxel.i;
     }
 
     voxels

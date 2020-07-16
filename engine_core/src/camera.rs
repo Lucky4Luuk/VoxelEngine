@@ -44,7 +44,7 @@ impl Camera {
             shutter_speed: 1.0 / 100.0,
             iso: 100.0,
 
-            position: Vec3::new(0.0, 0.0, -70.0),
+            position: Vec3::new(0.0, 24.0, -70.0),
             rotation: Quat::from_rotation_y(0.0), //Rotation3::<f32>::from_angle_y(Rad(3.14 / 2.0))
         }
     }
