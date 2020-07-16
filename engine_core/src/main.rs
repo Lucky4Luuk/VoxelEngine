@@ -3,6 +3,7 @@
 #[macro_use] extern crate log;
 #[macro_use] extern crate imgui;
 
+use std::ops::Deref;
 use std::os::raw::c_void;
 use std::time::Instant;
 
@@ -58,6 +59,10 @@ fn main() {
     let mut octree = octree::Octree::from_voxel_data(&vox_data[..], (126, 126, 126), 2).expect("Failed to create octree!");
     octree.generate_level();
     octree.generate_level();
+    octree.generate_level();
+    octree.generate_level();
+    octree.generate_level();
+    octree.generate_level();
 
     let (mut surface, gl, _gl_context) = initialize(1280, 720).expect("Failed to open a window!");
 
@@ -78,6 +83,7 @@ fn main() {
 
     //test shit
     let mesh = mesh::RenderMesh::from_vox_data(&mut surface, &vox_data[..], (126, 126, 126)).expect("Failed to create mesh!");
+    let octree_mesh = mesh::RenderMesh::from_octree(&mut surface, &octree, 128.0).expect("Failed to create mesh!");
     let mut camera = camera::Camera::default();
 
     let shader = shader::Shader::from_source(shader::ShaderSource{
@@ -104,15 +110,21 @@ fn main() {
 
         rasterizer::prepare_frame(&gl);
 
-        unsafe {
-            gl.clear_color(127.0 / 255.0, 103.0 / 255.0, 181.0 / 255.0, 1.0);
-            gl.clear(glow::COLOR_BUFFER_BIT);
-        }
+        // unsafe {
+        //     gl.clear_color(127.0 / 255.0, 103.0 / 255.0, 181.0 / 255.0, 1.0);
+        //     gl.clear(glow::COLOR_BUFFER_BIT);
+        // }
 
         //CODE STUFF HERE
-        camera.position.set_z(camera.position.z() + delta_s);
+        // camera.position.set_z(camera.position.z() + delta_s);
 
-        rasterizer::draw_vox_data(&mut surface, &gl, &camera, &shader, &mesh);
+        unsafe {
+            let col_pos = gl.get_uniform_location(shader.program().deref().handle(), "colour");
+            gl.uniform_3_f32(col_pos, 0.0, 1.0, 1.0);
+            rasterizer::draw_mesh(&mut surface, &gl, &camera, &shader, &mesh);
+            gl.uniform_3_f32(col_pos, 1.0, 0.0, 0.0);
+            rasterizer::draw_mesh(&mut surface, &gl, &camera, &shader, &octree_mesh);
+        }
 
         //UI
         let ui = imgui.frame();

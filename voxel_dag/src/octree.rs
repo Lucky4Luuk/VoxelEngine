@@ -20,7 +20,7 @@ pub struct Octant {
 pub struct Octree<'a> {
     pub level: u32,
     pub current_level: (u32, Vec<usize>), //(current level, indices of nodes in vector)
-    octants: Vec<Octant>,
+    pub octants: Vec<Octant>,
     voxel_data: &'a [u8],
     data_size: (u32, u32, u32)
 }

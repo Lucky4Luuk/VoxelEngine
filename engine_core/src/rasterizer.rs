@@ -36,8 +36,6 @@ pub struct ShaderInterface {
     pub projection: Uniform<M44>,
     #[uniform(unbound)] //#[uniform(name = "foo")] can be used to rename a uniform
     pub view: Uniform<M44>,
-    #[uniform(unbound)]
-    pub model: Uniform<M44>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Semantics)]
@@ -61,7 +59,7 @@ pub fn prepare_frame(gl: &glow::Context) {
     }
 }
 
-pub fn draw_vox_data(surface: &mut luminance_sdl2::SDL2Surface, gl: &glow::Context, camera: &Camera, shader: &Shader, mesh: &RenderMesh) {
+pub fn draw_mesh(surface: &mut luminance_sdl2::SDL2Surface, gl: &glow::Context, camera: &Camera, shader: &Shader, mesh: &RenderMesh) {
     let back_buffer = surface.back_buffer().expect("Couldn't get the backbuffer!");
 
     let projection = camera.get_proj(surface.width(), surface.height());
