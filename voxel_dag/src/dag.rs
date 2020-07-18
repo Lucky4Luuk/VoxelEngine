@@ -1,6 +1,8 @@
 use glam::*;
 use serde::{Serialize, Deserialize};
 
+use super::octree::Octree;
+
 //In the original paper, it suggests storing only a pointer to the first child, and then
 //have all the other children stored in memory consecutively, but I'm not sure how I'd do this
 //in Rust and I have to send it to the GPU anyway, which I plan on doing through an SSBO.
@@ -33,6 +35,27 @@ pub struct DAG {
 impl DAG {
     //Creation
     pub fn from_voxel_data(data: &[u8], data_size: (u32, u32, u32)) -> Self {
+        // unimplemented!();
+        //First generate an Octree
+        //then turn it into a DAG by removing all duplicate leafs.
+        //We can save on memory by generating the octree only partially
+        //before turning it into a DAG, then generate more parts.
+
+        //For now, we won't bother with generating only partial Octrees.
+        //I first want it to work before I optimize this :)
+        let mut biggest_axis_size = data_size.0;
+        if data_size.1 > biggest_axis_size { biggest_axis_size = data_size.1; }
+        if data_size.2 > biggest_axis_size { biggest_axis_size = data_size.2; }
+
+        let required_level = (biggest_axis_size as f32).log2().ceil() as u32;
+        debug!("Required octree level: {}", required_level);
+        let mut octree = Octree::from_voxel_data(data, data_size, required_level).expect("Failed to create octree!");
+        for _ in 0..required_level {
+            octree.generate_level();
+        }
+        debug!("Octants: {}", octree.octants.len());
+
+        debug!("Octree generated, ready to convert to DAG!");
         unimplemented!();
     }
 
