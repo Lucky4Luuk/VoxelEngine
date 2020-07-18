@@ -1,6 +1,8 @@
 use glam::*;
 use serde::{Serialize, Deserialize};
 
+use std::time::Instant;
+
 use super::octree::Octree;
 
 //In the original paper, it suggests storing only a pointer to the first child, and then
@@ -49,10 +51,13 @@ impl DAG {
 
         let required_level = (biggest_axis_size as f32).log2().ceil() as u32;
         debug!("Required octree level: {}", required_level);
+        let now = Instant::now();
         let mut octree = Octree::from_voxel_data(data, data_size, required_level).expect("Failed to create octree!");
         for _ in 0..required_level {
             octree.generate_level();
         }
+        let duration = Instant::now() - now;
+        debug!("Time to generate octree: {}ms", duration.as_millis());
         debug!("Octants: {}", octree.octants.len());
 
         debug!("Octree generated, ready to convert to DAG!");
