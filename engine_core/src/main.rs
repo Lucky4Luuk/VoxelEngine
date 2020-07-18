@@ -48,8 +48,11 @@ pub fn initialize(width: u32, height: u32) -> Result<(SDL2Surface, glow::Context
 }
 
 fn main() {
+    // let level_filter = log::LevelFilter::max();
+    let level_filter = log::LevelFilter::Error;
+
     pretty_env_logger::formatted_builder()
-        .filter(None, log::LevelFilter::max())
+        .filter(None, level_filter)
         .init();
 
     debug!("Hello, world!");
@@ -120,8 +123,8 @@ fn main() {
 
         unsafe {
             let col_pos = gl.get_uniform_location(shader.program().deref().handle(), "colour");
-            gl.uniform_3_f32(col_pos, 0.0, 1.0, 1.0);
-            rasterizer::draw_mesh(&mut surface, &gl, &camera, &shader, &mesh);
+            // gl.uniform_3_f32(col_pos, 0.0, 1.0, 1.0);
+            // rasterizer::draw_mesh(&mut surface, &gl, &camera, &shader, &mesh);
             gl.uniform_3_f32(col_pos, 1.0, 0.0, 0.0);
             rasterizer::draw_mesh(&mut surface, &gl, &camera, &shader, &octree_mesh);
         }

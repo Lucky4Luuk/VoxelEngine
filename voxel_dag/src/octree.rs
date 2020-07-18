@@ -80,7 +80,7 @@ impl<'a> Octree<'a> {
                 }
             }
         }
-        debug!("Found {} nodes containing geometry to process for the next level!", next_level.len());
+        trace!("Found {} nodes containing geometry to process for the next level!", next_level.len());
         self.current_level = (self.current_level.0 + 1, next_level);
     }
 
@@ -94,8 +94,8 @@ impl<'a> Octree<'a> {
         let node_size = biggest_axis_size as f32 / 2.0f32.powi(node.level as i32);
         let vox_space_pos = (pos * biggest_axis_size as f32).floor();
 
-        debug!("top_left: {}", vox_space_pos.x() as usize);
-        debug!("size:     {}", node_size as usize);
+        trace!("top_left: {}", vox_space_pos.x() as usize);
+        trace!("size:     {}", node_size as usize);
 
         let ux = vox_space_pos.x() as usize;
         let uy = vox_space_pos.y() as usize;
