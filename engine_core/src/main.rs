@@ -49,10 +49,10 @@ pub fn initialize(width: u32, height: u32) -> Result<(SDL2Surface, glow::Context
 
 fn main() {
     // let level_filter = log::LevelFilter::max();
-    let level_filter = log::LevelFilter::Error;
+    let level_filter = log::LevelFilter::Debug;
 
     pretty_env_logger::formatted_builder()
-        .filter(None, level_filter)
+        .filter_level(level_filter)
         .init();
 
     debug!("Hello, world!");

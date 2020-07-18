@@ -106,7 +106,7 @@ impl<'a> Octree<'a> {
             for y in uy .. uy + us {
                 for z in uz .. uz + us {
                     if self.voxel_data[x + y * self.data_size.0 as usize + z * self.data_size.0 as usize * self.data_size.1 as usize] > 0 {
-                        debug!("Found a voxel containing geometry!");
+                        trace!("Found a voxel containing geometry!");
                         return false;
                     }
                 }
