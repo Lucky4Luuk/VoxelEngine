@@ -1,4 +1,6 @@
 use std::rc::Rc;
+use std::cmp;
+
 use glam::*;
 
 //Octree implementation for constructing a DAG
@@ -17,9 +19,18 @@ pub struct Octant {
     pub position: Vec3A, //Top left, 16 bytes instead of 12 but might be worth the trade off
 }
 
+impl std::fmt::Debug for Octant {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Octant")
+         .field("level", &self.level)
+         .finish()
+    }
+}
+
 pub struct Octree<'a> {
     pub level: u32,
     pub current_level: (u32, Vec<usize>), //(current level, indices of nodes in vector)
+    pub level_indices: Vec<usize>,
     pub octants: Vec<Octant>,
     voxel_data: &'a [u8],
     data_size: (u32, u32, u32)
@@ -42,15 +53,23 @@ impl<'a> Octree<'a> {
         Ok(Self {
             level: level,
             current_level: (0, vec![0]),
+            level_indices: vec![0],
             octants: octants,
             voxel_data: data,
             data_size: data_size,
         })
     }
+    //Prints raw data to console
+    pub fn debug_print(&self) {
+        for i in 0..cmp::min(self.octants.len(), 32) {
+            debug!("Octant: {:?} - Index: {}", self.octants[i], i);
+        }
+    }
 
     /// Generates a single level of the octree
     pub fn generate_level(&mut self) {
         let mut next_level = Vec::new();
+        let mut first_child_idx = usize::MAX;
         for idx in &self.current_level.1 {
             //Check if node contains geometry
             if !self.octants[*idx].is_leaf {
@@ -66,6 +85,7 @@ impl<'a> Octree<'a> {
                         let child_pos = Vec3A::new(child_x, child_y, child_z);
                         let new_child_pos = parent_pos + child_pos / 2.0f32.powi(self.octants[*idx].level as i32); //Might need to do +1
                         let child_idx = self.octants.len();
+                        if child_idx < first_child_idx { first_child_idx = child_idx; }
                         self.octants.push(Octant {
                             children: [None; 8],
                             level: self.octants[*idx].level + 1,

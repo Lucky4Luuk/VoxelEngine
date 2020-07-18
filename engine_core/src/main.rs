@@ -56,7 +56,7 @@ fn main() {
 
     let vox_data = vox_loader::load_vox("teapot.vox");
     debug!("Vox data loaded!");
-    let dag = dag::DAG::from_voxel_data(&vox_data[..], (126, 126, 126));
+    // let dag = dag::DAG::from_voxel_data(&vox_data[..], (126, 126, 126));
     let mut octree = octree::Octree::from_voxel_data(&vox_data[..], (126, 126, 126), 2).expect("Failed to create octree!");
     octree.generate_level();
     octree.generate_level();
@@ -64,6 +64,7 @@ fn main() {
     octree.generate_level();
     octree.generate_level();
     octree.generate_level();
+    octree.debug_print();
 
     let (mut surface, gl, _gl_context) = initialize(1280, 720).expect("Failed to open a window!");
 
