@@ -1,4 +1,6 @@
 use voxel_dag::octree::Octree;
+use voxel_dag::voxel_data_structure;
+
 use glam::*;
 
 use luminance::context::GraphicsContext;
@@ -108,6 +110,30 @@ impl RenderMesh {
             let octant_size = size / 2.0f32.powi(octant.level as i32);
             let position = Vec3::new(octant.position.x(), octant.position.y(), octant.position.z());
             vertices.append(&mut get_cube_lines(position * size - Vec3::new(size / 2.0,  size / 2.0, size / 2.0), octant_size));
+        }
+
+        builder = builder.add_vertices(vertices);
+
+        Ok(RenderMesh {
+            tess: builder.build()?,
+            triangulated: true,
+            vert_count: 0,
+        })
+    }
+
+    pub fn from_octants<C>(ctx: &mut C, octants: &Vec<voxel_data_structure::Octant>, size: f32) -> Result<RenderMesh, TessError>
+    where
+        C: GraphicsContext,
+    {
+        let mut builder = TessBuilder::new(ctx)
+            .set_mode(Mode::Line);
+
+        let mut vertices = Vec::new();
+
+        for octant in octants {
+            let octant_size = size / 2.0f32.powi(octant.level as i32);
+            let position = octant.position;
+            vertices.append(&mut get_cube_lines(position * size - Vec3::new(size / 2.0,  size / 2.0, size / 2.0), octant_size as f32));
         }
 
         builder = builder.add_vertices(vertices);
