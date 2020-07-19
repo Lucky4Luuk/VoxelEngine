@@ -12,11 +12,40 @@ use glam::*;
 //Vec3 takes 12 bytes but has no SIMD acceleration, Vec3A takes 16 bytes but has SIMD acceleration.
 //Please help, I don't know which trade-off is better
 
+//NOTE: This is a shit implementation. It's awful. This is super bloated for no reason at all.
+//      A much better implementation would be to just do it like my DAG implementation, with
+//      just a raw buffer of data. In fact, I could just create a single data structure that
+//      both my octree and DAG use, as they do not in fact have different memory structures.
+//      The biggest difference is that in a DAG, a node does not store it's position, the position
+//      is simply determined based on the path the ray is taking.
+
+#[derive(PartialEq)]
 pub struct Octant {
-    pub children: [Option<usize>; 8], //usize as an index into the octree
+    pub children: [Option<u32>; 8], //u32 as an index into the octree
     pub level: u32,
     pub is_leaf: bool,
     pub position: Vec3A, //Top left, 16 bytes instead of 12 but might be worth the trade off
+}
+
+impl Octant {
+    pub fn child_mask(&self) -> u8 {
+        let mut result = 0x0000_0000;
+        for i in 0..8 {
+            if self.children[i].is_some() {
+                result |= 0x0000_0001 << i;
+            }
+        }
+        result
+    }
+
+    pub fn first_child(&self) -> u32 {
+        for child in &self.children {
+            if let Some(idx) = child {
+                return *idx;
+            }
+        }
+        0
+    }
 }
 
 impl std::fmt::Debug for Octant {
@@ -30,7 +59,6 @@ impl std::fmt::Debug for Octant {
 pub struct Octree<'a> {
     pub level: u32,
     pub current_level: (u32, Vec<usize>), //(current level, indices of nodes in vector)
-    pub level_indices: Vec<usize>,
     pub octants: Vec<Octant>,
     voxel_data: &'a [u8],
     data_size: (u32, u32, u32)
@@ -53,7 +81,6 @@ impl<'a> Octree<'a> {
         Ok(Self {
             level: level,
             current_level: (0, vec![0]),
-            level_indices: vec![0],
             octants: octants,
             voxel_data: data,
             data_size: data_size,
@@ -69,7 +96,6 @@ impl<'a> Octree<'a> {
     /// Generates a single level of the octree
     pub fn generate_level(&mut self) {
         let mut next_level = Vec::new();
-        let mut first_child_idx = usize::MAX;
         for idx in &self.current_level.1 {
             //Check if node contains geometry
             if !self.octants[*idx].is_leaf {
@@ -83,16 +109,15 @@ impl<'a> Octree<'a> {
                         let child_y = (j / 2 % 2) as f32 * 0.5;
                         let child_z = (j / 4 % 2) as f32 * 0.5;
                         let child_pos = Vec3A::new(child_x, child_y, child_z);
-                        let new_child_pos = parent_pos + child_pos / 2.0f32.powi(self.octants[*idx].level as i32); //Might need to do +1
+                        let new_child_pos = parent_pos + child_pos / 2.0f32.powi(self.octants[*idx].level as i32);
                         let child_idx = self.octants.len();
-                        if child_idx < first_child_idx { first_child_idx = child_idx; }
                         self.octants.push(Octant {
                             children: [None; 8],
                             level: self.octants[*idx].level + 1,
                             is_leaf: false,
                             position: new_child_pos,
                         });
-                        self.octants[*idx].children[j] = Some(child_idx);
+                        self.octants[*idx].children[j] = Some(child_idx as u32); //Could potentially lead to data loss with massive octrees, but only when said octree contains more than 4_294_967_295 nodes
                         next_level.push(child_idx);
                     }
                 } else {

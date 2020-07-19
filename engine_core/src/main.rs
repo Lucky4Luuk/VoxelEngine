@@ -67,7 +67,7 @@ fn main() {
     octree.generate_level();
     octree.generate_level();
     octree.generate_level();
-    octree.debug_print();
+    // octree.debug_print();
 
     let (mut surface, gl, _gl_context) = initialize(1280, 720).expect("Failed to open a window!");
 

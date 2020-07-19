@@ -19,3 +19,4 @@ I'm still quite unsure about this, but it preferably has to mimic the GPU data s
 The raytracing will most likely be done in a compute shader.
 I'd like to spawn a thread per ray (see [this paper](https://research.nvidia.com/sites/default/files/pubs/2013-07_Megakernels-Considered-Harmful/laine2013hpg_paper.pdf)), but this will probably not be implemented at the start.
 About octree raytracing, [here's what I'll probably use for the basic implementation](https://daeken.svbtle.com/a-stupidly-simple-fast-octree-traversal-for-ray-intersection).
+The biggest difference between octree raytracing and DAG raytracing is that you no longer store the position of a node, you instead now determine the position based on the path you are traversing.
