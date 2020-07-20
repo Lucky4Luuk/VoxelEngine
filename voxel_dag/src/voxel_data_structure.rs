@@ -4,6 +4,12 @@ use serde::{Serialize, Deserialize};
 use std::time::Instant;
 use std::cmp;
 
+//In the original paper, it suggests storing only a pointer to the first child, and then
+//have all the other children stored in memory consecutively, but I'm not sure how I'd do this
+//in Rust and I have to send it to the GPU anyway, which I plan on doing through an SSBO.
+//Therefore, I'm going to stick with an identical layout on the CPU, making use of indices
+//instead of pointers.
+
 //Data structure:
 // childmask        [24 bits empty; 8 bits for mask]
 // child index 1    [u32]
@@ -45,6 +51,56 @@ pub struct Octant {
     pub position: Vec3,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct VoxelDAG {
+    data: Vec<u32>, //raw data, only used internally for OpenGL
+}
+
+//Voxels (on 1 axis) per level of the octree: pow(2, level)
+//Required length for size: log2(biggest_voxel_count_axis)//.ceil() to get the proper level
+//TODO: Use a proper error type, not a String.
+impl VoxelDAG {
+    pub fn from_voxel_data(data: &[u8], data_size: (u32, u32, u32), level: u32) -> Result<Self, String> {
+        if level < 1 { return Err("Unable to create octree with level lower than 1!".to_string()); }
+
+        let mut nodes = vec![Octant {
+            parent: 0,
+            first_child: 0,
+            level: 0,
+            is_leaf: false,
+            position: Vec3::new(0.0, 0.0, 0.0),
+        }];
+
+        generate_node(&mut nodes, data, data_size, 0, 0, level);
+
+        debug!("Node count: {}", nodes.len());
+
+        //TODO: Filter out duplicate nodes
+
+        debug!("Generating raw buffer data!");
+
+        let mut data = Vec::new();
+
+        for i in 0..nodes.len() {
+            //Mask denotes which children are leaf nodes
+            let mut mask = 0x0000_0000;
+            for j in nodes[i as usize].first_child..nodes[i as usize].first_child+1 {
+                if j != 0 { //0 is invalid index
+                    if nodes[j as usize].is_leaf {
+                        mask |= 0x0000_0001 << 1;
+                    }
+                }
+            }
+            data.push(mask as u32);
+            data.push(i as u32);
+        }
+
+        Ok(Self {
+            data: data,
+        })
+    }
+}
+
 fn generate_node(nodes: &mut Vec<Octant>, data: &[u8], data_size: (u32,u32,u32), parent: u32, cur_level: u32, level: u32) {
     let node = &nodes[parent as usize];
     //Check if node contains geometry, then generate children
@@ -81,34 +137,5 @@ fn generate_node(nodes: &mut Vec<Octant>, data: &[u8], data_size: (u32,u32,u32),
     } else {
         nodes[parent as usize].is_leaf = true;
         return;
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct VoxelDAG {
-    data: Vec<u32>, //raw data, only used internally for OpenGL
-}
-
-//Voxels (on 1 axis) per level of the octree: pow(2, level)
-//Required length for size: log2(biggest_voxel_count_axis)//.ceil() to get the proper level
-//TODO: Use a proper error type, not a String.
-impl VoxelDAG {
-    pub fn from_voxel_data(data: &[u8], data_size: (u32, u32, u32), level: u32) -> Vec<Octant> { //Result<Self, String>
-        // if level < 1 { return Err("Unable to create octree with level lower than 1!".to_string()); }
-
-        let mut nodes = vec![Octant {
-            parent: 0,
-            first_child: 0,
-            level: 0,
-            is_leaf: false,
-            position: Vec3::new(0.0, 0.0, 0.0),
-        }];
-
-        generate_node(&mut nodes, data, data_size, 0, 0, level);
-
-        debug!("Node count: {}", nodes.len());
-
-        // unimplemented!();
-        nodes
     }
 }
