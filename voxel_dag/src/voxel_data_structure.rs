@@ -54,6 +54,7 @@ pub struct Octant {
 #[derive(Serialize, Deserialize)]
 pub struct VoxelDAG {
     data: Vec<u32>, //raw data, only used internally for OpenGL
+    ssbo: u32, // https://www.khronos.org/opengl/wiki/Shader_Storage_Buffer_Object
 }
 
 //Voxels (on 1 axis) per level of the octree: pow(2, level)
@@ -95,8 +96,21 @@ impl VoxelDAG {
             data.push(i as u32);
         }
 
+        //Generate ssbo buffer
+        let mut ssbo: u32 = 0;
+        unsafe {
+            let raw_data = data.as_slice();
+
+            gl::GenBuffers(1, &mut ssbo);
+            gl::BindBuffer(gl::SHADER_STORAGE_BUFFER, ssbo);
+            gl::BufferData(gl::SHADER_STORAGE_BUFFER, std::mem::size_of_val(raw_data) as isize, raw_data.as_ptr() as *const std::ffi::c_void, gl::DYNAMIC_DRAW);
+            gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 3, ssbo);
+            gl::BindBuffer(gl::SHADER_STORAGE_BUFFER, 0); //unbind ssbo
+        }
+
         Ok(Self {
             data: data,
+            ssbo: ssbo,
         })
     }
 }

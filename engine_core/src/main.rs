@@ -18,6 +18,7 @@ use voxel_dag::*;
 mod camera;
 mod shader;
 mod mesh;
+mod compute;
 
 mod ui;
 mod vox_loader;
@@ -68,7 +69,6 @@ fn main() {
     // octree.generate_level();
     // octree.generate_level();
     // debug!("Old octree node count: {}", octree.octants.len());
-    let new_octree = voxel_data_structure::VoxelDAG::from_voxel_data(&vox_data[..], (126, 126, 126), 6);
     // octree.debug_print();
 
     let (mut surface, gl, _gl_context) = initialize(1280, 720).expect("Failed to open a window!");
@@ -81,12 +81,22 @@ fn main() {
 
     gl::load_with(|s| surface.video.gl_get_proc_address(s) as _);
 
+    let new_octree = voxel_data_structure::VoxelDAG::from_voxel_data(&vox_data[..], (126, 126, 126), 6);
+
+    //quick debug for max ssbo size
+    let mut ssbo_max_size = 0;
+    unsafe { gl::GetIntegerv(gl::MAX_SHADER_STORAGE_BLOCK_SIZE, &mut ssbo_max_size); }
+    debug!("MAX_SHADER_STORAGE_BLOCK_SIZE: {}", ssbo_max_size);
+    debug!("MAX_COMPUTE_WORK_GROUP_COUNT: {:?}", compute::get_workgroup_count());
+    debug!("MAX_COMPUTE_WORK_GROUP_SIZE: {:?}", compute::get_workgroup_size());
+    debug!("MAX_COMPUTE_WORK_GROUP_INVOCATIONS: {}", compute::get_workgroup_invocations());
+
     let renderer = imgui_opengl_renderer::Renderer::new(&mut imgui, |s| surface.video.gl_get_proc_address(s) as *const c_void);
 
     let mut event_pump = surface.sdl.event_pump().expect("Failed to get event pump!");
 
     let mut last_frame = Instant::now();
-    let mut delta_s = 0.0;
+    let mut delta_s: f32 = 1.0;
 
     //test shit
     let mesh = mesh::RenderMesh::from_vox_data(&mut surface, &vox_data[..], (126, 126, 126)).expect("Failed to create mesh!");
@@ -136,15 +146,14 @@ fn main() {
         //UI
         let ui = imgui.frame();
 
-        let test_window = imgui::Window::new(im_str!("Test window"))
+        let debug_window = imgui::Window::new(im_str!("Debug window"))
             .position([10.0, 10.0], imgui::Condition::Appearing)
             .size([320.0, 120.0], imgui::Condition::Appearing)
             .focused(false)
             .collapsible(true);
 
-        test_window.build(&ui, || {
-            ui.text("Fuck off");
-            ui.text("I'm cooding");
+        debug_window.build(&ui, || {
+            ui.text(format!("fps: {:.2}", 1.0 / delta_s));
             ui.separator();
             ui.text(format!("cam pos: {:?}", camera.position));
         });
