@@ -91,6 +91,8 @@ fn main() {
     debug!("MAX_COMPUTE_WORK_GROUP_SIZE: {:?}", compute::get_workgroup_size());
     debug!("MAX_COMPUTE_WORK_GROUP_INVOCATIONS: {}", compute::get_workgroup_invocations());
 
+    rasterizer::create_frame_buffer((1280, 720));
+
     let renderer = imgui_opengl_renderer::Renderer::new(&mut imgui, |s| surface.video.gl_get_proc_address(s) as *const c_void);
 
     let mut event_pump = surface.sdl.event_pump().expect("Failed to get event pump!");

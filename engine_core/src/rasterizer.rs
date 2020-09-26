@@ -86,3 +86,46 @@ pub fn draw_mesh(surface: &mut luminance_sdl2::SDL2Surface, gl: &glow::Context, 
         }
     );
 }
+
+pub fn create_texture(resolution: (i32, i32)) -> u32 {
+    let mut texture = 0;
+
+    unsafe {
+        gl::GenTextures(1, &mut texture);
+        gl::BindTexture(gl::TEXTURE_2D, texture);
+        gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGB as i32, resolution.0, resolution.1, 0, gl::RGB, gl::UNSIGNED_BYTE, std::ptr::null()); //null ptr so texture is empty
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
+        gl::BindTexture(gl::TEXTURE_2D, 0); //Unbind the texture
+    }
+
+    texture
+}
+
+pub fn create_frame_buffer(resolution: (i32, i32)) -> u32 {
+    let mut fb = 0;
+
+    unsafe {
+        gl::GenFramebuffers(1, &mut fb);
+        gl::BindFramebuffer(gl::FRAMEBUFFER, fb);
+
+        let mut depth_tex = 0;
+        gl::GenRenderbuffers(1, &mut depth_tex);
+        gl::BindRenderbuffer(gl::RENDERBUFFER, depth_tex);
+        gl::RenderbufferStorage(gl::RENDERBUFFER, gl::DEPTH_COMPONENT, resolution.0, resolution.1);
+
+        gl::FramebufferRenderbuffer(gl::FRAMEBUFFER, gl::DEPTH_ATTACHMENT, gl::RENDERBUFFER, depth_tex);
+        gl::FramebufferTexture(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, create_texture(resolution), 0);
+
+        let draw_buffers = [gl::COLOR_ATTACHMENT0];
+        gl::DrawBuffers(1, draw_buffers.as_ptr());
+
+        if gl::CheckFramebufferStatus(gl::FRAMEBUFFER) != gl::FRAMEBUFFER_COMPLETE {
+            panic!("aaaa framebuffer broken uwu");
+        }
+
+        gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
+    }
+
+    fb
+}
