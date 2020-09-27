@@ -93,8 +93,8 @@ pub fn create_texture(resolution: (i32, i32)) -> u32 {
     unsafe {
         gl::GenTextures(1, &mut texture);
         gl::BindTexture(gl::TEXTURE_2D, texture);
-        gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGB as i32, resolution.0, resolution.1, 0, gl::RGB, gl::UNSIGNED_BYTE, std::ptr::null()); //null ptr so texture is empty
-        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+        gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA32F as i32, resolution.0, resolution.1, 0, gl::RGBA, gl::FLOAT, std::ptr::null()); //null ptr so texture is empty
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32); //possibly make the filtering linear?
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
         gl::BindTexture(gl::TEXTURE_2D, 0); //Unbind the texture
     }

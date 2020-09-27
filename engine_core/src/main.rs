@@ -81,6 +81,8 @@ fn main() {
 
     gl::load_with(|s| surface.video.gl_get_proc_address(s) as _);
 
+    let test_shader = shader::RawShader::from_compute(include_str!("shaders/compute.glsl"));
+
     let new_octree = voxel_data_structure::VoxelDAG::from_voxel_data(&vox_data[..], (126, 126, 126), 6);
 
     //quick debug for max ssbo size
