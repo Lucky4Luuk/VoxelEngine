@@ -129,3 +129,47 @@ pub fn create_frame_buffer(resolution: (i32, i32)) -> u32 {
 
     fb
 }
+
+static quad_vertices: [f32; 12] = [
+     1.0,  1.0, 0.0,
+     1.0, -1.0, 0.0,
+    -1.0, -1.0, 0.0,
+    -1.0,  1.0, 0.0,
+];
+
+static quad_indices: [u32; 6] = [
+    0,1,3,
+    1,2,3,
+];
+
+pub fn create_render_quad() -> u32 {
+    let mut quad_va = 0;
+    let mut quad_vb = 0;
+    let mut quad_ebo = 0;
+
+    unsafe {
+        //vertex array
+        gl::GenVertexArrays(1, &mut quad_va);
+        gl::BindVertexArray(quad_va);
+
+        //vertex buffer
+        gl::GenBuffers(1, &mut quad_vb);
+        gl::BindBuffer(gl::ARRAY_BUFFER, quad_vb);
+        gl::BufferData(gl::ARRAY_BUFFER, std::mem::size_of::<[f32; 12]>() as isize, quad_vertices.as_ptr() as *const std::ffi::c_void, gl::STATIC_DRAW);
+
+        //indices
+        gl::GenBuffers(1, &mut quad_ebo);
+        gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, quad_ebo);
+        gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, std::mem::size_of::<[u32; 6]>() as isize, quad_indices.as_ptr() as *const std::ffi::c_void, gl::STATIC_DRAW);
+
+        //vertex attribs
+        gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, 3 * std::mem::size_of::<f32>() as i32, std::ptr::null());
+        gl::EnableVertexAttribArray(0);
+
+        //unbind
+        gl::BindVertexArray(0);
+        gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+    }
+
+    quad_va
+}

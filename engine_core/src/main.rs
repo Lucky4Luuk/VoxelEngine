@@ -91,7 +91,8 @@ fn main() {
     debug!("MAX_COMPUTE_WORK_GROUP_SIZE: {:?}", compute::get_workgroup_size());
     debug!("MAX_COMPUTE_WORK_GROUP_INVOCATIONS: {}", compute::get_workgroup_invocations());
 
-    rasterizer::create_frame_buffer((1280, 720));
+    //let render_texture = rasterizer::create_texture((1280, 720));
+    // rasterizer::create_frame_buffer((1280, 720));
 
     let renderer = imgui_opengl_renderer::Renderer::new(&mut imgui, |s| surface.video.gl_get_proc_address(s) as *const c_void);
 
@@ -112,6 +113,15 @@ fn main() {
         fragment_shader: include_str!("shaders/fragment.glsl").to_string(),
     });
 
+    let quad_shader = shader::Shader::from_source(shader::ShaderSource{
+        vertex_shader: include_str!("shaders/passthrough_vertex.glsl").to_string(),
+        geometry_shader: None,
+        tesselation_shader: None,
+        fragment_shader: include_str!("shaders/passthrough_fragment_textured.glsl").to_string(),
+    });
+
+    let quad_va = rasterizer::create_render_quad();
+
     'main: loop {
         for event in event_pump.poll_iter() {
             imgui_sdl2.handle_event(&mut imgui, &event);
@@ -127,7 +137,7 @@ fn main() {
 
         imgui_sdl2.prepare_frame(imgui.io_mut(), &surface.window, &event_pump.mouse_state());
 
-        rasterizer::prepare_frame(&gl);
+        // rasterizer::prepare_frame(&gl);
 
         // unsafe {
         //     gl.clear_color(127.0 / 255.0, 103.0 / 255.0, 181.0 / 255.0, 1.0);
@@ -137,12 +147,22 @@ fn main() {
         //CODE STUFF HERE
         // camera.position.set_z(camera.position.z() + delta_s);
 
-        unsafe {
+        /*unsafe {
             let col_pos = gl.get_uniform_location(shader.program().deref().handle(), "colour");
             gl.uniform_3_f32(col_pos, 0.0, 1.0, 1.0);
             rasterizer::draw_mesh(&mut surface, &gl, &camera, &shader, &mesh);
             // gl.uniform_3_f32(col_pos, 1.0, 0.0, 0.0);
             // rasterizer::draw_mesh(&mut surface, &gl, &camera, &shader, &octree_mesh);
+        }*/
+
+        //Render textured quad
+        unsafe {
+            let handle = quad_shader.program().deref().handle();
+            gl::UseProgram(handle);
+            gl::BindVertexArray(quad_va);
+            gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+            gl::BindVertexArray(0);
+            gl::UseProgram(0);
         }
 
         //UI
